@@ -1,0 +1,4 @@
+config/seasons/helpa/database.yml
+log/*
+tmp/*
+doc/*
