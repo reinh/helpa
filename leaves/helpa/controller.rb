@@ -134,9 +134,12 @@ class Controller < Autumn::Leaf
   
   def classes_for(entries)
     constants = entries.map(&:constant).sort_by { |c| c.count }.uniq.last(5).map(&:name).reverse
-    if constant = constants.detect { |c| /#{@parts.first}/.match(c) }
+    other_constants = constants.select { |c| /#{@parts.first}/.match(c) }
+    if other_constants.size == 1
+      constant = other_constants.first
       lookup_command(@stem, @sender, nil, "#{constant} #{entries.first.name}")
     else
+      constants = other_constants if !other_constants.empty?
       @stem.message("Found multiple entries for your query, please refine your query by specifying one of these classes (top 5 shown): #{constants.join(", ")} or another class", @sender[:nick])
     end
   end
