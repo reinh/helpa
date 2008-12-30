@@ -1,5 +1,5 @@
-Logga:
-  class: Logga
+Helpa:
+  class: Helpa
   # authentication:
   #   type: nick
   #   nick: Radar

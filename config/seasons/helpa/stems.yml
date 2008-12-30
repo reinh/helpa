@@ -2,7 +2,7 @@
 loglibrary: 
   nick: helpa
   leaves: 
-  - Logga
+  - Helpa
   rejoin: true
   channels:
     - "#rubyonrails"
