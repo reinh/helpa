@@ -64,6 +64,9 @@ class Controller < Autumn::Leaf
       parts = msg.split(" ") if msg.include?(" ")
       parts ||= msg.split("#") if msg.include?("#")
       parts ||= [msg]
+      @parts = parts
+      @sender = sender
+      @stem = stem
     
     # Is the first word a constant?
     if /^[A-Z]/.match(parts.first)
@@ -82,8 +85,7 @@ class Controller < Autumn::Leaf
             if entries.empty?
               stem.message("Could not find any entry with the name #{parts.last} anywhere in the API.", sender[:nick])
             else
-              classes = entries.map(&:constant).sort_by { |c| c.count }.last(5).map(&:name)
-              stem.message("Could not find #{parts.last} within the scope of #{parts.first}! Perhaps you meant: #{classes.join(", ")}", sender[:nick])
+              classes_for(entries)
             end
           else
             constant.increment!("count")
@@ -91,7 +93,12 @@ class Controller < Autumn::Leaf
             message = send_lookup_message(stem, message, reply_to, opts[:directed_at])
           end
         end      
-      else  
+      # When they specify an invalid constant (perhaps a partial name) and a valid entry.
+      elsif parts.first != parts.last
+        entries = Entry.find_all_by_name(parts.last)
+        classes_for(entries)
+      # When they specify an invalid constant AND an invalid entry.
+      else
         stem.message("Could not find constant #{parts.first} or #{parts.first}::ClassMethods in the API!", sender[:nick])
       end
     else
@@ -105,8 +112,8 @@ class Controller < Autumn::Leaf
         message = "#{constant.name}##{entry.name}: #{entry.url}"
         message = send_lookup_message(stem, message, reply_to, opts[:directed_at])
       elsif entries.size > 1
-        classes = entries.map(&:constant).sort_by { |c| c.count }.last(5).map(&:name)
-        stem.message("Found multiple entries for #{parts.first}, please refine your query by specifying one of these classes (top 5 shown): #{classes.join(", ")} or another class", sender[:nick])
+        classes_for(entries) 
+
       else
         stem.message("Could not find any entry with the name #{parts.last} anywhere in the API.", sender[:nick])
       end
@@ -124,6 +131,16 @@ class Controller < Autumn::Leaf
   end
   
   private
+  
+  def classes_for(entries)
+    constants = entries.map(&:constant).sort_by { |c| c.count }.uniq.last(5).map(&:name).reverse
+    if constant = constants.detect { |c| /#{@parts.first}/.match(c) }
+      lookup_command(@stem, @sender, nil, "#{constant} #{entries.first.name}")
+    else
+      @stem.message("Found multiple entries for your query, please refine your query by specifying one of these classes (top 5 shown): #{constants.join(", ")} or another class", @sender[:nick])
+    end
+  end
+  
   
   def send_lookup_message(stem, message, reply_to, directed_at=nil)
     message = "#{directed_at}: " + message  if directed_at
