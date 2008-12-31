@@ -63,6 +63,7 @@ class Controller < Autumn::Leaf
     return if msg.blank?
       parts = msg.split(" ") if msg.include?(" ")
       parts ||= msg.split("#") if msg.include?("#")
+      parts ||= msg.gsub(/\(.*?\)/,'').split(".") if msg.include?(".")
       parts ||= [msg]
       @parts = parts
       @sender = sender
