@@ -90,7 +90,7 @@ class Controller < Autumn::Leaf
           else
             constant.increment!("count")
             message = "#{constant.name}: #{constant.url}"
-            message = send_lookup_message(stem, message, reply_to, opts[:directed_at])
+            send_lookup_message(stem, message, reply_to, opts[:directed_at])
           end
         end      
       # When they specify an invalid constant (perhaps a partial name) and a valid entry.
@@ -147,7 +147,7 @@ class Controller < Autumn::Leaf
   
   def send_lookup_message(stem, message, reply_to, directed_at=nil)
     message = "#{directed_at}: " + message  if directed_at
-    stem.message(message, reply_to)  
+    stem.message(message, reply_to) and return false
   end
   
   def update_api(name, url)
