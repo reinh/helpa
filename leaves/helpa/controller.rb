@@ -134,7 +134,7 @@ class Controller < Autumn::Leaf
   
   def classes_for(entries)
     constants = entries.map(&:constant).sort_by { |c| c.count }.uniq.last(5).map(&:name).reverse
-    other_constants = constants.select { |c| /#{@parts.first}/.match(c) }
+    other_constants = constants.select { |c| /#{@parts.first.gsub!('+', '\+')}/.match(c) }
     if other_constants.size == 1
       constant = other_constants.first
       lookup_command(@stem, @sender, nil, "#{constant} #{entries.first.name}")
