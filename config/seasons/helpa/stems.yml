@@ -5,6 +5,6 @@ loglibrary:
   - Helpa
   rejoin: true
   channels:
-    - "#rubyonrails"
+    # - "#rubyonrails"
     - "#helpa"
   server: irc.freenode.net

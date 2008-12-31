@@ -67,6 +67,7 @@ class Controller < Autumn::Leaf
       @parts = parts
       @sender = sender
       @stem = stem
+      @reply_to = reply_to
     
     # Is the first word a constant?
     if /^[A-Z]/.match(parts.first)
@@ -134,10 +135,11 @@ class Controller < Autumn::Leaf
   
   def classes_for(entries)
     constants = entries.map(&:constant).sort_by { |c| c.count }.uniq.last(5).map(&:name).reverse
-    other_constants = constants.select { |c| /#{@parts.first.gsub!('+', '\+')}/.match(c) }
+    other_constants = constants.select { |c| !/#{@parts.first.gsub('+', '\+')}/.match(c).nil? }
+    puts other_constants.inspect
     if other_constants.size == 1
       constant = other_constants.first
-      lookup_command(@stem, @sender, nil, "#{constant} #{entries.first.name}")
+      lookup_command(@stem, @sender, @reply_to, "#{constant} #{entries.first.name}")
     else
       constants = other_constants if !other_constants.empty?
       @stem.message("Found multiple entries for your query, please refine your query by specifying one of these classes (top 5 shown): #{constants.join(", ")} or another class", @sender[:nick])
