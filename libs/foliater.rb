@@ -173,10 +173,7 @@ module Autumn
     def load_leaf_models(leaf)
       mod = config.leaf(leaf.options[:class], :module)
       leaf.database do
-        Dir.glob("leaves/#{leaf.options[:class].snakecase}/models/*.rb").each do |model_file|
-          require model_file
-          puts "Loading #{model_file}"
-        end
+        Dir.glob("leaves/#{leaf.options[:class].snakecase}/models/*.rb").each { |model_file| require model_file }
       end
     end
     

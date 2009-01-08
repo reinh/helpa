@@ -132,7 +132,7 @@ module Autumn # :nodoc:
         $NO_DATABASE = true
         return
       end
-       gem 'activerecord'
+       gem 'activerecord', "2.1.2"
        require 'activerecord'
        ActiveRecord::Base.establish_connection(YAML::load(File.open(db_file, 'r'))["production"])
     end
