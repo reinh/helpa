@@ -137,8 +137,12 @@ class Controller < Autumn::Leaf
   
   def search(host, stem, sender, msg, reply_to, opts, query_parameter="q")
     message = "#{host}?#{query_parameter}=#{msg.split(" ").join("+")}"
-    message = opts[:directed_at] + ": #{message}" if opts[:directed_at]
-    return message
+    if opts[:directed_at]
+      message = opts[:directed_at] + ": #{message}" 
+      stem.message(message)
+    else
+      return message
+    end
   end
   
   def classes_for(entries)
