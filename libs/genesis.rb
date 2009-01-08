@@ -132,7 +132,9 @@ module Autumn # :nodoc:
         $NO_DATABASE = true
         return
       end
-#      gem 'extlib', '=0.9.8'
+       gem 'activerecord'
+       require 'activerecord'
+       ActiveRecord::Base.establish_connection(YAML::load(File.open(db_file, 'r'))["production"])
     end
     
     # Invokes the Foliater.load method. Spawns a new thread to oversee the

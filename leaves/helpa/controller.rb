@@ -1,8 +1,4 @@
 # Controller for the helpa leaf.
-gem 'activerecord', "2.1.2"
-require 'activerecord'
-
-ActiveRecord::Base.establish_connection(YAML::load(File.open("config/seasons/helpa/database.yml", "r+"))["production"])
 class Controller < Autumn::Leaf
   
   def gitlog_command(stem, sender, reply_to, msg)
@@ -123,16 +119,27 @@ class Controller < Autumn::Leaf
   end
   
   def google_command(stem, sender, reply_to, msg, opts={})
-    google("http://www.google.com/search", stem, sender, msg, reply_to, opts)
+    search("http://www.google.com/search", stem, sender, msg, reply_to, opts)
   end
   
   alias :g_command :google_command 
   
   def gg_command(stem, sender, reply_to, msg, opts={})
-    google("http://www.letmegooglethatforyou.com/", stem, sender, msg, reply_to, opts)
+    search("http://www.letmegooglethatforyou.com/", stem, sender, msg, reply_to, opts)
+  end
+  
+  def railscast_command(stem, sender, reply_to, msg, opts={})
+    search("http://railscasts.com/episodes", stem, sender, msg, reply_to, opts, "search")
   end
   
   private
+  
+  
+  def search(host, stem, sender, msg, reply_to, opts, query_parameter="q")
+    message = "#{host}?#{query_parameter}=#{msg.split(" ").join("+")}"
+    message = opts[:directed_at] + ": #{message}" if opts[:directed_at]
+    return message
+  end
   
   def classes_for(entries)
     constants = entries.map(&:constant).sort_by { |c| c.count }.uniq.last(5).map(&:name).reverse
@@ -146,8 +153,7 @@ class Controller < Autumn::Leaf
       @stem.message("Found multiple entries for your query, please refine your query by specifying one of these classes (top 5 shown): #{constants.join(", ")} or another class", @sender[:nick])
     end
   end
-  
-  
+
   def send_lookup_message(stem, message, reply_to, directed_at=nil)
     message = "#{directed_at}: " + message  if directed_at
     stem.message(message, reply_to) and return false
@@ -175,13 +181,6 @@ class Controller < Autumn::Leaf
     doc.search("a").each do |a|
       constant = Constant.find_or_create_by_name_and_url(a.inner_html, a["href"])
     end
-  end
-  
-  def google(host, stem, sender, msg, reply_to, opts)
-    return unless authorized?(sender[:nick])
-    message = "#{host}?q=#{msg.split(" ").join("+")}"
-    message = opts[:directed_at] + ": #{message}" if opts[:directed_at]
-    return message
   end
   
   def i_am_a_bot
@@ -231,6 +230,22 @@ class Controller < Autumn::Leaf
     
     if message.match(/^helpa[:|,]/)
       stem.message(i_am_a_bot, sender[:nick])
+    end
+    
+     words = message.split(" ") - ["a"]
+     people = []
+     for word in words
+       word = word.gsub(":", "")
+       word = word.gsub(",", "")
+       people << Person.find_by_name(word, :conditions => "chats_count > 100")
+     end
+     
+     # Allow voting for multiple people.
+     people = people.compact!
+   if /(thank|thx|props|kudos|big ups|10x|cheers)/i.match(message) && message.split(" ").size != 1 && !people.blank?
+       for person in (people - [Person.find_by_name(sender[:nick])] - ["anathematic"])
+         person.votes.create(:chat => chat, :person => chat.person)
+       end
     end
   end
 end
