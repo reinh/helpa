@@ -139,7 +139,7 @@ class Controller < Autumn::Leaf
     message = "#{host}?#{query_parameter}=#{msg.split(" ").join("+")}"
     if opts[:directed_at]
       message = opts[:directed_at] + ": #{message}" 
-      stem.message(message)
+      stem.message(message, reply_to)
     else
       return message
     end
