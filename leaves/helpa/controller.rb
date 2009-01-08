@@ -242,7 +242,7 @@ class Controller < Autumn::Leaf
      
      # Allow voting for multiple people.
      people = people.compact!
-   if /(thank|thx|props|kudos|big ups|10x|cheers)/i.match(message) && message.split(" ").size != 1 && !people.blank?
+   if /(thank|thx|props|kudos|big ups|10x|cheers|ty)/i.match(message) && message.split(" ").size != 1 && !people.blank?
        for person in (people - [Person.find_by_name(sender[:nick])] - ["anathematic"])
          person.votes.create(:chat => chat, :person => chat.person)
        end
